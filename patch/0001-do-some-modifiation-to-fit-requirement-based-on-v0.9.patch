@@ -1,0 +1,61 @@
+From a7a0704aa013f328440c97a4e1a2e28cdc541e0a Mon Sep 17 00:00:00 2001
+From: tanxiaofei <tanxiaofei@huawei.com>
+Date: Thu, 17 May 2018 15:46:24 +0800
+Subject: [PATCH] do some modifiation to fit requirement based on v0.90
+
+---
+ src/block.c  |  4 ++--
+ src/ledmon.c | 15 +++------------
+ 2 files changed, 5 insertions(+), 14 deletions(-)
+
+diff --git a/src/block.c b/src/block.c
+index f7c7492..14f908f 100644
+--- a/src/block.c
++++ b/src/block.c
+@@ -242,7 +242,7 @@ struct block_device *block_device_init(const struct list *cntrl_list, const char
+ 			device->cntrl = cntrl;
+ 			device->sysfs_path = strdup(link);
+ 			device->cntrl_path = host;
+-			device->ibpi = IBPI_PATTERN_UNKNOWN;
++			device->ibpi = IBPI_PATTERN_NORMAL;
+ 			device->ibpi_prev = IBPI_PATTERN_NONE;
+ 			device->send_fn = send_fn;
+ 			device->flush_fn = flush_fn;
+@@ -311,7 +311,7 @@ struct block_device *block_device_duplicate(struct block_device *block)
+ 			if (block->ibpi != IBPI_PATTERN_UNKNOWN)
+ 				result->ibpi = block->ibpi;
+ 			else
+-				result->ibpi = IBPI_PATTERN_ONESHOT_NORMAL;
++				result->ibpi = IBPI_PATTERN_NORMAL;
+ 			result->ibpi_prev = block->ibpi_prev;
+ 			result->send_fn = block->send_fn;
+ 			result->flush_fn = block->flush_fn;
+diff --git a/src/ledmon.c b/src/ledmon.c
+index 33ad563..3ad6f73 100644
+--- a/src/ledmon.c
++++ b/src/ledmon.c
+@@ -777,18 +777,9 @@ static void _send_msg(struct block_device *block)
+ 		return;
+ 	}
+ 	if (block->timestamp != timestamp ||
+-	    block->ibpi == IBPI_PATTERN_REMOVED) {
+-		if (block->ibpi != IBPI_PATTERN_FAILED_DRIVE) {
+-			log_info("CHANGE %s: from '%s' to '%s'.",
+-				 block->sysfs_path, ibpi_str[block->ibpi],
+-				 ibpi_str[IBPI_PATTERN_FAILED_DRIVE]);
+-			block->ibpi = IBPI_PATTERN_FAILED_DRIVE;
+-		} else {
+-			char *host = strstr(block->sysfs_path, "host");
+-			log_debug("DETACHED DEV '%s' in failed state",
+-				  host ? host : block->sysfs_path);
+-		}
+-	}
++	    block->ibpi == IBPI_PATTERN_REMOVED)
++		block->ibpi = IBPI_PATTERN_UNKNOWN;
++
+ 	block->send_fn(block, block->ibpi);
+ 	block->ibpi_prev = block->ibpi;
+ }
+-- 
+2.17.0
+
