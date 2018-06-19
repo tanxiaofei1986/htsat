@@ -5,7 +5,7 @@
 echo "
 [global]
 rw=$2
-direct=0
+direct=1
 ramp_time=1
 ioengine=libaio
 iodepth=$3
@@ -18,7 +18,7 @@ group_reporting=1
 ;gtod_reduce=1
 ;iodepth_batch=2
 ;iodepth_batch_complete=2
-runtime=1800000
+runtime=$5
 ;thread
 loops=10
 " > $1_$2_depth$3_fiotest
